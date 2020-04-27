@@ -1,11 +1,11 @@
 import React from 'react';
-import './style.css';
+import './styles.css';
 
 export default function Error(props) {
-    const { children, color, textColor } = props;
-    return (
-        <error {...props} style={{ backgroundColor: color, color: textColor }}>
-            {children}
-        </error>
-    );
+  const { children, color, textColor } = props;
+  return (
+    <div className="error" {...props} style={{ backgroundColor: color, color: textColor }}>
+      {children}
+    </div>
+  );
 }

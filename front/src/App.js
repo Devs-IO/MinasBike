@@ -1,15 +1,18 @@
 import React from 'react';
+import { ProvideAuth } from 'hooks/useAuth';
 import Routes from './routes';
-import Header from './components/Header';
-import "./styles.css";
+import './styles.css';
+
+window.DEV_MODE = false;
 
 function App() {
-    return (
-        <div className="App">
-            <Header />
-            <Routes />
-        </div>
-    );
+  return (
+    <ProvideAuth>
+      <div className="App">
+        <Routes />
+      </div>
+    </ProvideAuth>
+  );
 }
 
 export default App;
