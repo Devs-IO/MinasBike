@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useTable, useSortBy, useGlobalFilter } from 'react-table';
-import TextBox from './TextBox';
+import TextBox from 'components/TextBox';
 
 import searchIcon from 'assets/icons/search.svg';
+
+import './styles.scss';
 
 function GlobalFilter({ globalFilter, setGlobalFilter, searchText }) {
   return (
@@ -18,7 +20,15 @@ function GlobalFilter({ globalFilter, setGlobalFilter, searchText }) {
   );
 }
 
-export default function Table({ columns, data, linkTo, TopHeaderComponent, searchText }) {
+export default function Table({
+  columns,
+  data,
+  withFilter,
+  linkTo,
+  updateData,
+  TopHeaderComponent,
+  searchText,
+}) {
   const {
     getTableProps,
     getTableBodyProps,
@@ -31,6 +41,7 @@ export default function Table({ columns, data, linkTo, TopHeaderComponent, searc
     {
       columns,
       data,
+      updateData,
     },
     useGlobalFilter,
     useSortBy
@@ -39,11 +50,13 @@ export default function Table({ columns, data, linkTo, TopHeaderComponent, searc
   return (
     <>
       <div className="top-header">
-        <GlobalFilter
-          globalFilter={state.globalFilter}
-          setGlobalFilter={setGlobalFilter}
-          searchText={searchText}
-        />
+        {withFilter && (
+          <GlobalFilter
+            globalFilter={state.globalFilter}
+            setGlobalFilter={setGlobalFilter}
+            searchText={searchText}
+          />
+        )}
         {TopHeaderComponent}
       </div>
       <table {...getTableProps()}>
@@ -54,16 +67,28 @@ export default function Table({ columns, data, linkTo, TopHeaderComponent, searc
                 // Add the sorting props to control sorting. For this example
                 // we can add them into the header props
                 <th {...column.getHeaderProps(column.getSortByToggleProps())}>
-                  {column.render('Header')}
-                  {/* Add a sort direction indicator */}
-                  {/* TODO: format sort drection indicator using CSS classes */}
-                  <span>{column.isSorted ? (column.isSortedDesc ? ' 🔽' : ' 🔼') : ''}</span>
+                  <div className="table-head-cell">
+                    <span>{column.render('Header')}</span>
+                    {/* Add a sort direction indicator */}
+                    <span>{column.isSorted ? (column.isSortedDesc ? ' 🔽' : ' 🔼') : ''}</span>
+                  </div>
                 </th>
               ))}
             </tr>
           ))}
         </thead>
         <tbody {...getTableBodyProps()}>
+          {rows.length === 0 && headerGroups.length > 0 && (
+            <tr>
+              <td
+                colSpan={headerGroups[0].headers.length}
+                style={{ textAlign: 'center ', height: 96 }}
+              >
+                Nenhum item
+              </td>
+            </tr>
+          )}
+
           {rows.map(row => {
             prepareRow(row);
             return (

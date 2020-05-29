@@ -1,21 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import api from 'services/api';
+import { formatErrorsSingleObject } from 'utils/formatFieldErrors';
+import formatSelectItem from 'utils/formatSelectItem';
+import devlog from 'utils/devlog';
 import TextBox from 'components/TextBox';
 import Button from 'components/Button';
 import Header from 'components/Header';
 import Modal from 'components/Modal';
 import SelectWithLabel from 'components/SelectWithLabel';
 import { BPSelector } from './BPSelector';
-
-import { formatErrorsSingleObject } from 'utils/formatFieldErrors';
 import ProviderSelector from './ProviderSelector';
+
+import '../styles.scss';
 
 const str = item => JSON.stringify(item, null, 2);
 
 const initialBpData = {
   product: { id: -2 },
   brand: { id: -2 },
-  brandproduct: { id: -1 },
+  brandproduct: { id: -1, price: 5 },
 };
 
 export default function CadastroProduto({ history }) {
@@ -44,12 +47,10 @@ export default function CadastroProduto({ history }) {
 
   useEffect(() => setShouldBPSelectorReset(false), [bpData]);
 
-  const formatSelectItem = (value, label) => ({ value, label });
-
   function handleChange(setStateHandler, { name, value }) {
     setStateHandler(old => ({ ...old, [name]: value }));
-    console.log(name, value);
-    console.log(brandproductForm, productForm, stockForm);
+    devlog(name, value);
+    devlog(brandproductForm, productForm, stockForm);
   }
 
   // função que leva em conta tanto os dados do form quanto do select.
@@ -114,9 +115,7 @@ export default function CadastroProduto({ history }) {
       })
       .catch(err => {
         setErrors(formatErrorsSingleObject(err.response.data));
-        console.log(err);
-        console.log(err.response);
-        console.log(err.data);
+        devlog(err);
 
         // reset EVERYTHING
         // não tem como resetar bpData. na verdade, o reset acontece internamente, mas
@@ -141,10 +140,12 @@ export default function CadastroProduto({ history }) {
   const isBPFormDisabled = bpData.brandproduct.id >= 0;
 
   return (
-    <div className="tela">
+    <div className="tela tela-cadastro">
       <Header>Novo Produto</Header>
       <form onSubmit={handleSubmit}>
         <BPSelector onChange={setBpData} shouldReset={shouldBPSelectorReset} />
+        <span>{errors.brandproduct_id}</span>
+
         <div>
           {window.DEV_MODE && 'PRODUCT STUFF'}
           <TextBox
@@ -198,26 +199,29 @@ export default function CadastroProduto({ history }) {
             </>
           )}
         </div>
-        <div onChangeCapture={e => handleChange(setBrandproductForm, e.target)}>
+        <div>
           {window.DEV_MODE && 'BP STUFF'}
           <>
             <TextBox
               required
               type="number"
+              min="0"
               name="code"
               error={errors.code}
               disabled={isBPFormDisabled}
               value={bpData.brandproduct.code}
               label="Código de Barras"
+              onChange={e => handleChange(setBrandproductForm, e.target)}
             />
             <TextBox
               required
-              type="number"
+              type="currency"
               name="price"
               error={errors.price}
               disabled={isBPFormDisabled}
               value={bpData.brandproduct.price}
               label="Preço"
+              onChange={value => handleChange(setBrandproductForm, { name: 'price', value })}
             />
           </>
         </div>
@@ -226,31 +230,39 @@ export default function CadastroProduto({ history }) {
           <TextBox
             required
             type="number"
+            min="0"
             error={errors.current_qty}
             name="current_qty"
-            label="qtd. atual estoque"
+            label="Quantidade Atual em Estoque"
           />
           <TextBox
             required
             type="number"
+            min="0"
             error={errors.min_qty}
             name="min_qty"
-            label="qtd. mínima estoque"
+            label="Quantidade Mínima de Estoque"
           />
           <TextBox
             required
             type="number"
+            min="0"
             error={errors.initial_qty}
             name="initial_qty"
-            label="qtd. inicial em estoque"
+            label="Quantidade Inicial em Estoque"
           />
         </div>
 
-        <ProviderSelector onChange={setPrprData} brandproduct_id={bpData.brandproduct.id} />
-        <br />
-        <span>brandproduct errors: {errors.brandproduct_id}</span>
-        <span>providerproduct errors: {errors.provider_id}</span>
-        <Button type="submit">POST</Button>
+        <ProviderSelector
+          onChange={setPrprData}
+          brandproduct_id={bpData.brandproduct.id}
+          useRuleTwo
+        />
+        {errors.provider_id && <span className="error">Erro: {errors.provider_id}</span>}
+
+        <Button color="rgb(48, 204, 87)" type="submit">
+          Cadastrar
+        </Button>
       </form>
 
       {isSubmitting && <Modal type="loading" />}

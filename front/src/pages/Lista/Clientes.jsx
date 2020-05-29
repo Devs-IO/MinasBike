@@ -4,6 +4,7 @@ import api from 'services/api';
 import Header from 'components/Header';
 import Button from 'components/Button';
 import Table from 'components/Table';
+import DateCell from 'components/Table/DateCell';
 
 import './styles.css';
 
@@ -12,7 +13,7 @@ export default function ListaClientes({ history }) {
 
   useEffect(() => {
     function fetchData() {
-      api.get('/clients').then((res) => setClients(res.data));
+      api.get('/clients').then(res => setClients(res.data));
     }
     fetchData();
   }, []);
@@ -23,11 +24,12 @@ export default function ListaClientes({ history }) {
     { Header: 'Endereço', accessor: 'address' },
     { Header: 'Telefone', accessor: 'phone' },
     { Header: 'E-mail', accessor: 'email' },
-    { Header: 'Data de Nascimento', accessor: 'birthday' },
+    {
+      Header: 'Data de Nascimento',
+      accessor: 'birthday',
+      Cell: DateCell,
+    },
   ];
-
-  // id => code
-  const data = clients.map(item => ({...item, code: item.id}));
 
   const TopHeader = () => (
     <Button color="#DC2438" onClick={() => {}}>
@@ -50,7 +52,8 @@ export default function ListaClientes({ history }) {
         {clients.length > 0 && (
           <Table
             columns={headers}
-            data={data}
+            data={clients.map(item => ({...item, code: item.id}))}
+            withFilter
             linkTo="clientes"
             searchText="Buscar clientes..."
             TopHeaderComponent={<TopHeader />}
